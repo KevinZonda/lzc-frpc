@@ -132,7 +132,11 @@ type PureRequest struct {
 }
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	initWdir()
+	if _, err := os.Stat("/lzcapp/var/frp/frpc.toml"); err == nil {
+		startFrpc()
+	}
 	r := gin.Default()
 
 	r.StaticFile("/", "./web/index.html")
