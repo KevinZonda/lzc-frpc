@@ -40,6 +40,7 @@
     #restartBtn { background: #f97316; color: #fff; }
     #clearLogBtn { background: #e8e8e8; color: #333; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #dirtyHint { font-size: 0.8rem; color: #f97316; font-weight: 500; white-space: nowrap; }
 
     .status-badge {
       margin-left: auto; padding: 0.25rem 0.75rem; border-radius: 99px;
@@ -86,6 +87,7 @@
       <div class="toolbar">
         <button id="fetchBtn"   type="button">Fetch Config</button>
         <button id="submitBtn"  type="button">Save Config</button>
+        <span id="dirtyHint"></span>
         <button id="startBtn"   type="button">Start</button>
         <button id="stopBtn"    type="button">Stop</button>
         <button id="restartBtn" type="button">Restart</button>
@@ -120,6 +122,7 @@
     const logPre         = document.getElementById('logPre');
     const logStatus      = document.getElementById('logStatus');
     const clearLogBtn    = document.getElementById('clearLogBtn');
+    const dirtyHint      = document.getElementById('dirtyHint');
 
     // ---- tabs ----
     let logPollTimer = null;
@@ -153,6 +156,14 @@
       restartBtn.disabled = !running;
     }
 
+    // ---- dirty state ----
+    let dirty = false;
+    function setDirty(val) {
+      dirty = val;
+      dirtyHint.textContent = val ? '● Unsaved changes' : '';
+    }
+    configTextarea.addEventListener('input', () => setDirty(true));
+
     // ---- config tab ----
     async function refreshStatus() {
       try {
@@ -169,6 +180,7 @@
         const res  = await fetch('/api/frpc/config');
         const data = await res.json();
         configTextarea.value = data.text ?? '';
+        setDirty(false);
       } catch {
         alert('Failed to fetch config');
       }
@@ -177,11 +189,12 @@
     async function saveConfig() {
       submitBtn.disabled = true;
       try {
-        await fetch('/api/frpc/config', {
+        const res = await fetch('/api/frpc/config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: configTextarea.value }),
         });
+        if (res.ok) setDirty(false);
       } finally {
         submitBtn.disabled = false;
       }
