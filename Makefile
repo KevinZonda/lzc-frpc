@@ -6,8 +6,8 @@ deploy: build
 	npx lzc-cli project info
 
 deploy-release: build
-    lzc-cli project deploy --release
-    lzc-cli project info --release
+	npx lzc-cli project deploy --release
+	npx lzc-cli project info --release
 
 ssh:
 	npx lzc-cli project exec /bin/sh
