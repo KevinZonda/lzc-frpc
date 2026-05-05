@@ -3,3 +3,4 @@
 /cloud.lazycat.app.golang-template
 frp
 *.tar.gz
+*.tar
