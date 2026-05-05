@@ -1,16 +1,7 @@
-FROM registry.lazycat.cloud/lzc/lzcapp:3.20.3 AS builder
-
-RUN apk add --no-cache go
-WORKDIR /workspace
-
-COPY go.mod ./
-COPY main.go ./
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /workspace/app ./main.go
-
 FROM registry.lazycat.cloud/lzc/lzcapp:3.20.3
 
 WORKDIR /app
-COPY --from=builder /workspace/app /app/app
+COPY main /app/app
 COPY frp /app/frp
 COPY run.sh /app/run.sh
 RUN chmod +x /app/run.sh /app/app
