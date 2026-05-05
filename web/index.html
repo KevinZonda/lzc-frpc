@@ -11,25 +11,33 @@
     h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
     .subtitle { color: #888; font-style: italic; margin-bottom: 1.5rem; font-size: 0.9rem; }
 
-    .panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 1.25rem; }
 
     /* tabs */
-    .tabs { display: flex; border-bottom: 1px solid #e5e7eb; }
-    .tab-btn {
-      padding: 0.65rem 1.25rem; border: none; background: none;
-      cursor: pointer; font-size: 0.9rem; color: #888; border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
+    .tabs {
+      display: inline-flex; background: #f0f0f0; border-radius: 7px;
+      padding: 3px; gap: 2px; margin-bottom: 1.25rem;
     }
-    .tab-btn.active { color: #3b82f6; border-bottom-color: #3b82f6; font-weight: 600; }
-    .tab-content { display: none; padding: 1.25rem; }
+    .tab-btn {
+      padding: 0.3rem 1.1rem; border: none; background: none; border-radius: 5px;
+      cursor: pointer; font-size: 0.875rem; color: #666; font-weight: 500;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+    .tab-btn.active {
+      background: #fff; color: #111; font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    .tab-content { display: none; }
     .tab-content.active { display: block; }
 
     /* toolbar */
     .toolbar { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
     button { padding: 0.4rem 1rem; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem; }
-    #fetchBtn  { background: #e8e8e8; color: #333; }
-    #submitBtn { background: #3b82f6; color: #fff; }
-    #startBtn  { background: #22c55e; color: #fff; }
+    #fetchBtn   { background: #e8e8e8; color: #333; }
+    #submitBtn  { background: #3b82f6; color: #fff; }
+    #startBtn   { background: #22c55e; color: #fff; }
+    #stopBtn    { background: #ef4444; color: #fff; }
+    #restartBtn { background: #f97316; color: #fff; }
     #clearLogBtn { background: #e8e8e8; color: #333; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -76,9 +84,11 @@
     <!-- Config Tab -->
     <div id="tab-config" class="tab-content active">
       <div class="toolbar">
-        <button id="fetchBtn"  type="button">Fetch Config</button>
-        <button id="submitBtn" type="button">Save Config</button>
-        <button id="startBtn"  type="button">Start</button>
+        <button id="fetchBtn"   type="button">Fetch Config</button>
+        <button id="submitBtn"  type="button">Save Config</button>
+        <button id="startBtn"   type="button">Start</button>
+        <button id="stopBtn"    type="button">Stop</button>
+        <button id="restartBtn" type="button">Restart</button>
         <span id="statusBadge" class="status-badge unknown">Unknown</span>
       </div>
       <textarea id="configTextarea" placeholder="Paste your frpc.toml config here..."></textarea>
@@ -102,6 +112,8 @@
     const submitBtn      = document.getElementById('submitBtn');
     const fetchBtn       = document.getElementById('fetchBtn');
     const startBtn       = document.getElementById('startBtn');
+    const stopBtn        = document.getElementById('stopBtn');
+    const restartBtn     = document.getElementById('restartBtn');
     const statusBadge    = document.getElementById('statusBadge');
     const statusBadge2   = document.getElementById('statusBadge2');
     const configTextarea = document.getElementById('configTextarea');
@@ -135,6 +147,10 @@
         b.className = 'status-badge ' + cls;
         b.textContent = label;
       });
+      const running = status === 'running';
+      startBtn.disabled   = running;
+      stopBtn.disabled    = !running;
+      restartBtn.disabled = !running;
     }
 
     // ---- config tab ----
@@ -171,21 +187,23 @@
       }
     }
 
-    async function startFrpc() {
-      startBtn.disabled = true;
+    async function callAction(endpoint, btn) {
+      btn.disabled = true;
       try {
-        const res  = await fetch('/api/frpc/run', { method: 'POST' });
+        const res  = await fetch(endpoint, { method: 'POST' });
         const data = await res.json();
-        if (!res.ok) { alert('Error: ' + (data.error || 'unknown')); return; }
+        if (!res.ok) { alert('Error: ' + (data.error || 'unknown')); }
         await refreshStatus();
       } finally {
-        startBtn.disabled = false;
+        btn.disabled = false;
       }
     }
 
     submitBtn.addEventListener('click', saveConfig);
     fetchBtn.addEventListener('click', fetchConfig);
-    startBtn.addEventListener('click', startFrpc);
+    startBtn.addEventListener('click',   () => callAction('/api/frpc/run',     startBtn));
+    stopBtn.addEventListener('click',    () => callAction('/api/frpc/stop',    stopBtn));
+    restartBtn.addEventListener('click', () => callAction('/api/frpc/restart', restartBtn));
 
     // ---- logs tab ----
     let lastLineCount = 0;
@@ -230,6 +248,7 @@
 
     // ---- init ----
     refreshStatus();
+    fetchConfig();
     setInterval(refreshStatus, 3000);
   </script>
 </body>

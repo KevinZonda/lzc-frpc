@@ -65,6 +65,15 @@ func initWdir() {
 	panicx.NotNilErr(os.MkdirAll("/lzcapp/var/frp", 0o755))
 }
 
+func stopFrpc() {
+	frpcMu.Lock()
+	defer frpcMu.Unlock()
+	if frpcCmd != nil && frpcCmd.Process != nil {
+		frpcCmd.Process.Kill()
+		frpcCmd = nil
+	}
+}
+
 func startFrpc() error {
 	frpcMu.Lock()
 	defer frpcMu.Unlock()
@@ -159,6 +168,19 @@ func main() {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"message": "started"})
+	})
+
+	r.POST("/api/frpc/stop", func(c *gin.Context) {
+		stopFrpc()
+		c.JSON(http.StatusOK, gin.H{"message": "stopped"})
+	})
+
+	r.POST("/api/frpc/restart", func(c *gin.Context) {
+		if err := startFrpc(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "restarted"})
 	})
 
 	r.GET("/api/frpc/logs", func(c *gin.Context) {

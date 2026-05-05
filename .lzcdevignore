@@ -19,6 +19,9 @@ __pycache__/**
 .lzc-cli-*/**
 *.lpk
 *.lpk.tar
+*.tar.gz
+*.tar
 Makefile
 Dockerfile.dev
 Dockerfile
+.lzc-*
