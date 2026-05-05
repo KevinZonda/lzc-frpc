@@ -1,0 +1,16 @@
+# 开发态覆盖配置
+
+# 覆盖开发态 package.yml，避免覆盖 release 安装包
+package_override:
+  package: cloud.lazycat.app.lzc-frpc.dev
+
+# 覆盖 release 配置中的 contentdir；留空表示开发态不打包内容目录
+contentdir:
+
+envs:
+  - DEV_MODE=1
+
+images:
+  app-runtime:
+    context: ./
+    dockerfile: ./Dockerfile.dev

@@ -1,0 +1,16 @@
+# manifest: 指定 lpk 的 manifest 文件
+manifest: ./lzc-manifest.yml
+
+# pkgout: lpk 输出目录
+pkgout: ./
+
+# icon: 应用图标（png）
+icon: ./lzc-icon.png
+
+# images: 构建容器镜像并写入 lpk v2 的 images 目录
+images:
+  app-runtime:
+    # context: Docker 构建上下文目录
+    context: ./
+    # dockerfile: 镜像构建文件
+    dockerfile: ./Dockerfile

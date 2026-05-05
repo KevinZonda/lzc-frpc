@@ -1,0 +1,30 @@
+application:
+  subdomain: lzc-frpc # 默认访问子域名前缀
+  image: embed:app-runtime # 引用 lzc-build.yml 里的 images.app-runtime
+#@build if env.DEV_MODE=1
+  injects:
+    - id: backend-dev-proxy
+      on: request
+      auth_required: false
+      when:
+        - "/*"
+      do:
+        - src: |
+            const backendPort = 3000;
+            const backendURL = "http://127.0.0.1:" + String(backendPort);
+            #@build include ./manifest.dev.page.js
+
+            if (!ctx.net.reachable("tcp", "127.0.0.1", backendPort)) {
+              ctx.response.send(200, renderDevPage(backendPort));
+              return;
+            }
+
+            ctx.proxy.to(backendURL, {
+              use_target_host: true,
+            });
+#@build else
+  routes:
+    # exec:// 路由会执行 /app/run.sh，并把请求转发到 3000 端口
+    # 适合「一个容器同时承载前端+后端」的入门场景
+    - /=exec://3000,/app/run.sh
+#@build end

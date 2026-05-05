@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lazycat Golang Todo Template</title>
+    <style>
+      :root {
+        --bg-1: #f8fbff;
+        --bg-2: #ecf6ff;
+        --card: #ffffff;
+        --text: #142033;
+        --muted: #4e617b;
+        --line: #d8e4f2;
+        --brand: #0076d6;
+        --brand-2: #00a5a5;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        background: radial-gradient(circle at top right, var(--bg-2), var(--bg-1) 42%);
+        color: var(--text);
+      }
+      .card {
+        width: min(920px, 100%);
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        padding: 26px;
+        box-shadow: 0 18px 48px rgba(20, 32, 51, 0.08);
+      }
+      .tag {
+        margin: 0;
+        color: var(--brand);
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        font-size: .85rem;
+      }
+      h1 { margin: 10px 0 12px; font-size: clamp(1.8rem, 3.2vw, 2.7rem); }
+      p { margin: 0; color: var(--muted); }
+      .btns {
+        margin-top: 18px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        border: 1px solid var(--line);
+        color: var(--text);
+        font-weight: 600;
+      }
+      a.primary {
+        color: #fff;
+        border-color: transparent;
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      }
+      .panel {
+        margin-top: 22px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        background: #fbfdff;
+      }
+      .sync-note {
+        margin-top: 8px;
+        font-size: .92rem;
+      }
+      .form {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+      }
+      .form input {
+        flex: 1;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        min-width: 0;
+      }
+      button {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 9px 12px;
+        cursor: pointer;
+        background: #fff;
+      }
+      ul {
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+      li {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+      }
+      label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .done {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+      .danger {
+        color: #a63e37;
+      }
+      @media (max-width: 640px) {
+        .form {
+          flex-direction: column;
+        }
+        li {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <p class="tag">Golang Version</p>
+      <h1>Todo demo powered by Go API</h1>
+      <p>
+        This template includes a Golang backend and a simple Todo app to help you start fast.
+      </p>
+
+      <div class="btns">
+        <a class="primary" href="https://lazycat.cloud/" target="_blank" rel="noreferrer">Visit lazycat.cloud</a>
+        <a href="https://developer.lazycat.cloud/" target="_blank" rel="noreferrer">Open Developer Docs</a>
+      </div>
+
+      <section class="panel">
+        <strong>Todo quick demo</strong>
+        <p class="sync-note">Data syncs automatically across devices when opened with the same app account.</p>
+        <div class="form">
+          <input id="todoInput" placeholder="Add a task for your app kickoff" />
+          <button id="addBtn" type="button">Add</button>
+        </div>
+        <ul id="todoList"></ul>
+      </section>
+    </main>
+    <script>
+      const todoInput = document.getElementById('todoInput');
+      const addBtn = document.getElementById('addBtn');
+      const todoList = document.getElementById('todoList');
+
+      async function fetchTodos() {
+        const resp = await fetch('/api/todos');
+        const data = await resp.json();
+        return Array.isArray(data.items) ? data.items : [];
+      }
+
+      function renderTodos(items) {
+        todoList.innerHTML = '';
+        for (const todo of items) {
+          const li = document.createElement('li');
+
+          const label = document.createElement('label');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = !!todo.done;
+          checkbox.addEventListener('change', async () => {
+            await fetch(`/api/todos/${todo.id}/toggle`, { method: 'PUT' });
+            await refreshTodos();
+          });
+
+          const span = document.createElement('span');
+          span.textContent = todo.title;
+          if (todo.done) {
+            span.className = 'done';
+          }
+          label.append(checkbox, span);
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'danger';
+          delBtn.textContent = 'Delete';
+          delBtn.addEventListener('click', async () => {
+            await fetch(`/api/todos/${todo.id}`, { method: 'DELETE' });
+            await refreshTodos();
+          });
+
+          li.append(label, delBtn);
+          todoList.appendChild(li);
+        }
+      }
+
+      async function refreshTodos() {
+        const items = await fetchTodos();
+        renderTodos(items);
+      }
+
+      async function addTodo() {
+        const title = todoInput.value.trim();
+        if (!title) return;
+        await fetch('/api/todos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title }),
+        });
+        todoInput.value = '';
+        await refreshTodos();
+      }
+
+      addBtn.addEventListener('click', addTodo);
+      todoInput.addEventListener('keyup', async (event) => {
+        if (event.key === 'Enter') {
+          await addTodo();
+        }
+      });
+
+      refreshTodos();
+      setInterval(refreshTodos, 2500);
+      document.addEventListener('visibilitychange', refreshTodos);
+      window.addEventListener('focus', refreshTodos);
+    </script>
+  </body>
+</html>
