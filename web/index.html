@@ -143,9 +143,18 @@
         const res  = await fetch('/api/frpc/status');
         const data = await res.json();
         setStatus(data.status);
-        if (data.text) configTextarea.value = data.text;
       } catch {
         setStatus('unknown');
+      }
+    }
+
+    async function fetchConfig() {
+      try {
+        const res  = await fetch('/api/frpc/config');
+        const data = await res.json();
+        configTextarea.value = data.text ?? '';
+      } catch {
+        alert('Failed to fetch config');
       }
     }
 
@@ -175,7 +184,7 @@
     }
 
     submitBtn.addEventListener('click', saveConfig);
-    fetchBtn.addEventListener('click', refreshStatus);
+    fetchBtn.addEventListener('click', fetchConfig);
     startBtn.addEventListener('click', startFrpc);
 
     // ---- logs tab ----
@@ -183,14 +192,8 @@
 
     async function fetchLogs() {
       try {
-        const [logRes, statusRes] = await Promise.all([
-          fetch('/api/frpc/logs'),
-          fetch('/api/frpc/status'),
-        ]);
-        const logData    = await logRes.json();
-        const statusData = await statusRes.json();
-
-        setStatus(statusData.status);
+        const logRes  = await fetch('/api/frpc/logs');
+        const logData = await logRes.json();
 
         const lines = logData.lines || [];
         if (lines.length === 0) {

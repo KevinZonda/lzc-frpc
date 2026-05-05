@@ -20,3 +20,5 @@ __pycache__/**
 *.lpk
 *.lpk.tar
 Makefile
+Dockerfile.dev
+Dockerfile

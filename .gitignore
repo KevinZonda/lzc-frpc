@@ -6,3 +6,4 @@ frp
 *.tar
 main
 *.exe
+.lzc*

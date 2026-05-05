@@ -146,10 +146,11 @@ func main() {
 		if isFrpcRunning() {
 			status = "running"
 		}
-		c.JSON(http.StatusOK, gin.H{
-			"status": status,
-			"text":   getFrpcConfig(),
-		})
+		c.JSON(http.StatusOK, gin.H{"status": status})
+	})
+
+	r.GET("/api/frpc/config", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"text": getFrpcConfig()})
 	})
 
 	r.POST("/api/frpc/run", func(c *gin.Context) {
