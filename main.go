@@ -41,13 +41,13 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
-	r.GET("/api/frpc/config", func(c *gin.Context) {
+	r.GET("/api/frpc/status", func(c *gin.Context) {
 		config, err := os.ReadFile("/lzcapp/var/frp/frpc.toml")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"text": string(config)})
+		c.JSON(http.StatusOK, gin.H{"text": string(config), "status": "running"})
 	})
 
 	r.POST("/api/frpc/run", func(c *gin.Context) {
