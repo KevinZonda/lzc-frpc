@@ -5,65 +5,105 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KevinZonda FRPC Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #222; padding: 2rem; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .subtitle { color: #888; font-style: italic; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .panel { background: #fff; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .toolbar { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+    button { padding: 0.4rem 1rem; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem; }
+    #fetchBtn  { background: #e8e8e8; color: #333; }
+    #submitBtn { background: #3b82f6; color: #fff; }
+    #startBtn  { background: #22c55e; color: #fff; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .status-badge {
+      margin-left: auto; padding: 0.25rem 0.75rem; border-radius: 99px;
+      font-size: 0.8rem; font-weight: 600;
+    }
+    .status-badge.running  { background: #dcfce7; color: #166534; }
+    .status-badge.stopped  { background: #fee2e2; color: #991b1b; }
+    .status-badge.unknown  { background: #e5e7eb; color: #374151; }
+    textarea {
+      width: 100%; height: 320px; font-family: monospace; font-size: 0.85rem;
+      border: 1px solid #ddd; border-radius: 5px; padding: 0.75rem;
+      resize: vertical; outline: none;
+    }
+    textarea:focus { border-color: #3b82f6; }
+    .footer { margin-top: 1.5rem; font-style: italic; color: #aaa; font-size: 0.8rem; }
+  </style>
 </head>
 
 <body>
   <h1>KevinZonda FRPC Panel</h1>
-  <p style="font-style: italic">
-    Simple. Powerful.
-  </p>
+  <p class="subtitle">Simple. Powerful.</p>
 
-  <section class="panel">
-    <button id="fetchBtn" type="button">Fetch Config</button>
-    <button id="submitBtn" type="button">Submit</button>
-    <button id="startBtn" type="button">Start</button>
-    <p id="statusTxt">Status: Unknown</p>
-    <div class="form">
-      <textarea id="configTextarea" placeholder="Config"></textarea>
+  <div class="panel">
+    <div class="toolbar">
+      <button id="fetchBtn"  type="button">Fetch Config</button>
+      <button id="submitBtn" type="button">Save Config</button>
+      <button id="startBtn"  type="button">Start</button>
+      <span id="statusBadge" class="status-badge unknown">Unknown</span>
     </div>
-  </section>
+    <textarea id="configTextarea" placeholder="Paste your frpc.toml config here..."></textarea>
+  </div>
 
-  <hr>
-  <p style="font-style: italic">
-    Running on :443 via Lazycat Cloud.
-  </p>
-
+  <p class="footer">Running on :443 via Lazycat Cloud.</p>
 
   <script>
-    const submitBtn = document.getElementById("submitBtn")
-    const fetchBtn = document.getElementById('fetchBtn');
-    const startBtn = document.getElementById('startBtn');
-    const statusTxt = document.getElementById('statusTxt');
-    const configTextarea = document.getElementById('configTextarea');
-    
+    const submitBtn       = document.getElementById('submitBtn');
+    const fetchBtn        = document.getElementById('fetchBtn');
+    const startBtn        = document.getElementById('startBtn');
+    const statusBadge     = document.getElementById('statusBadge');
+    const configTextarea  = document.getElementById('configTextarea');
+
+    function setStatus(status) {
+      statusBadge.className = 'status-badge ' + (status === 'running' ? 'running' : status === 'stopped' ? 'stopped' : 'unknown');
+      statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    }
 
     async function refreshStatus() {
-      const status = await fetch('/api/frpc/status');
-      statusTxt.textContent = `Status: ${status.status}`;
-      configTextarea.value = status.text;
+      try {
+        const res  = await fetch('/api/frpc/status');
+        const data = await res.json();
+        setStatus(data.status);
+        if (data.text) configTextarea.value = data.text;
+      } catch {
+        setStatus('unknown');
+      }
+    }
+
+    async function saveConfig() {
+      submitBtn.disabled = true;
+      try {
+        await fetch('/api/frpc/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: configTextarea.value }),
+        });
+      } finally {
+        submitBtn.disabled = false;
+      }
     }
 
     async function startFrpc() {
-      await fetch('/api/frpc/run', {
-        method: 'POST',
-      });
+      startBtn.disabled = true;
+      try {
+        const res  = await fetch('/api/frpc/run', { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) { alert('Error: ' + (data.error || 'unknown')); return; }
+        await refreshStatus();
+      } finally {
+        startBtn.disabled = false;
+      }
     }
 
-    async function updateConfig() {
-      const title = todoInput.value.trim();
-      if (!title) return;
-      await fetch('/api/frpc/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: configTextarea.value }),
-      });
-    }
-
-    submitBtn.addEventListener('click', updateConfig);
-    fetchBtn.addEventListener('click', fetchTodos);
+    submitBtn.addEventListener('click', saveConfig);
+    fetchBtn.addEventListener('click', refreshStatus);
     startBtn.addEventListener('click', startFrpc);
 
     refreshStatus();
+    setInterval(refreshStatus, 3000);
   </script>
 </body>
 
