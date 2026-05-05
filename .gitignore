@@ -1,3 +1,5 @@
 /bin/
 *.lpk
 /cloud.lazycat.app.golang-template
+frp
+*.tar.gz

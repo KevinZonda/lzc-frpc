@@ -11,6 +11,7 @@ FROM registry.lazycat.cloud/lzc/lzcapp:3.20.3
 
 WORKDIR /app
 COPY --from=builder /workspace/app /app/app
+COPY frp /app/frp
 COPY run.sh /app/run.sh
 RUN chmod +x /app/run.sh /app/app
 COPY web /app/web

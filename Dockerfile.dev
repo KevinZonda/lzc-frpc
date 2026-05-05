@@ -13,6 +13,7 @@ RUN apk add --no-cache go
 WORKDIR /app
 COPY --from=builder /workspace/app /app/app
 COPY run.sh /app/run.sh
+COPY frp /app/frp
 RUN chmod +x /app/run.sh /app/app
 COPY web /app/web
 
