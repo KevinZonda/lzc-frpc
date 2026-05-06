@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KevinZonda FRPC Panel</title>
+  <link rel="stylesheet" href="assets/codemirror.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #222; padding: 2rem; }
@@ -50,12 +51,15 @@
     .status-badge.stopped { background: #fee2e2; color: #991b1b; }
     .status-badge.unknown { background: #e5e7eb; color: #374151; }
 
-    textarea {
-      width: 100%; height: 320px; font-family: monospace; font-size: 0.85rem;
-      border: 1px solid #ddd; border-radius: 5px; padding: 0.75rem;
-      resize: vertical; outline: none;
+    /* CodeMirror editor */
+    .CodeMirror {
+      height: 320px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 0.85rem;
+      font-family: monospace;
     }
-    textarea:focus { border-color: #3b82f6; }
+    .CodeMirror-focused { border-color: #3b82f6; }
 
     /* log area */
     .log-meta { font-size: 0.75rem; color: #aaa; margin-bottom: 0.5rem; }
@@ -93,7 +97,7 @@
         <span id="dirtyHint"></span>
         <span id="statusBadge" class="status-badge unknown">Unknown</span>
       </div>
-      <textarea id="configTextarea" placeholder="Paste your frpc.toml config here..."></textarea>
+      <textarea id="configTextarea"></textarea>
     </div>
 
     <!-- Logs Tab -->
@@ -109,20 +113,30 @@
 
   <p class="footer">Copyright &copy; 2026 KevinZonda. All rights reserved.</p>
 
+  <script src="assets/codemirror.min.js"></script>
+  <script src="assets/toml.min.js"></script>
   <script>
+    // ---- CodeMirror editor ----
+    const editor = CodeMirror.fromTextArea(document.getElementById('configTextarea'), {
+      mode: 'toml',
+      lineNumbers: true,
+      lineWrapping: true,
+      indentWithTabs: false,
+      tabSize: 2,
+    });
+
     // ---- elements ----
-    const submitBtn      = document.getElementById('submitBtn');
-    const fetchBtn       = document.getElementById('fetchBtn');
-    const startBtn       = document.getElementById('startBtn');
-    const stopBtn        = document.getElementById('stopBtn');
-    const restartBtn     = document.getElementById('restartBtn');
-    const statusBadge    = document.getElementById('statusBadge');
-    const statusBadge2   = document.getElementById('statusBadge2');
-    const configTextarea = document.getElementById('configTextarea');
-    const logPre         = document.getElementById('logPre');
-    const logStatus      = document.getElementById('logStatus');
-    const clearLogBtn    = document.getElementById('clearLogBtn');
-    const dirtyHint      = document.getElementById('dirtyHint');
+    const submitBtn    = document.getElementById('submitBtn');
+    const fetchBtn     = document.getElementById('fetchBtn');
+    const startBtn     = document.getElementById('startBtn');
+    const stopBtn      = document.getElementById('stopBtn');
+    const restartBtn   = document.getElementById('restartBtn');
+    const statusBadge  = document.getElementById('statusBadge');
+    const statusBadge2 = document.getElementById('statusBadge2');
+    const logPre       = document.getElementById('logPre');
+    const logStatus    = document.getElementById('logStatus');
+    const clearLogBtn  = document.getElementById('clearLogBtn');
+    const dirtyHint    = document.getElementById('dirtyHint');
 
     // ---- tabs ----
     let logPollTimer = null;
@@ -133,11 +147,11 @@
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-
         if (btn.dataset.tab === 'logs') {
           startLogPolling();
         } else {
           stopLogPolling();
+          editor.refresh();
         }
       });
     });
@@ -162,7 +176,7 @@
       dirty = val;
       dirtyHint.textContent = val ? '● Unsaved changes' : '';
     }
-    configTextarea.addEventListener('input', () => setDirty(true));
+    editor.on('change', () => setDirty(true));
 
     // ---- config tab ----
     async function refreshStatus() {
@@ -179,7 +193,7 @@
       try {
         const res  = await fetch('/api/frpc/config');
         const data = await res.json();
-        configTextarea.value = data.text ?? '';
+        editor.setValue(data.text ?? '');
         setDirty(false);
       } catch {
         alert('Failed to fetch config');
@@ -192,7 +206,7 @@
         const res = await fetch('/api/frpc/config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: configTextarea.value }),
+          body: JSON.stringify({ text: editor.getValue() }),
         });
         if (res.ok) setDirty(false);
       } finally {
@@ -225,7 +239,6 @@
       try {
         const logRes  = await fetch('/api/frpc/logs');
         const logData = await logRes.json();
-
         const lines = logData.lines || [];
         if (lines.length === 0) {
           logPre.innerHTML = '<span class="empty">No logs yet. Start frpc to see output.</span>';
@@ -253,8 +266,7 @@
       logPollTimer = null;
     }
 
-    clearLogBtn.addEventListener('click', async () => {
-      // just clear the display; server buffer resets on next frpc start
+    clearLogBtn.addEventListener('click', () => {
       logPre.innerHTML = '<span class="empty">Cleared. Logs will reappear on next poll.</span>';
       lastLineCount = 0;
     });
