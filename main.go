@@ -140,6 +140,9 @@ func main() {
 	r := gin.Default()
 
 	r.StaticFile("/", "./web/index.html")
+	r.StaticFile("/assets/codemirror.min.css", "./web/assets/codemirror.min.css")
+	r.StaticFile("/assets/codemirror.min.js", "./web/assets/codemirror.min.js")
+	r.StaticFile("/assets/toml.min.js", "./web/assets/toml.min.js")
 
 	r.POST("/api/frpc/config", func(c *gin.Context) {
 		var req PureRequest
