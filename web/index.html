@@ -40,10 +40,10 @@
     #restartBtn { background: #f97316; color: #fff; }
     #clearLogBtn { background: #e8e8e8; color: #333; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
-    #dirtyHint { font-size: 0.8rem; color: #f97316; font-weight: 500; white-space: nowrap; }
+    #dirtyHint { margin-left: auto; font-size: 0.8rem; color: #f97316; font-weight: 500; white-space: nowrap; }
 
     .status-badge {
-      margin-left: auto; padding: 0.25rem 0.75rem; border-radius: 99px;
+      padding: 0.25rem 0.75rem; border-radius: 99px;
       font-size: 0.8rem; font-weight: 600;
     }
     .status-badge.running { background: #dcfce7; color: #166534; }
@@ -87,10 +87,10 @@
       <div class="toolbar">
         <button id="fetchBtn"   type="button">Fetch Config</button>
         <button id="submitBtn"  type="button">Save Config</button>
-        <span id="dirtyHint"></span>
         <button id="startBtn"   type="button">Start</button>
         <button id="stopBtn"    type="button">Stop</button>
         <button id="restartBtn" type="button">Restart</button>
+        <span id="dirtyHint"></span>
         <span id="statusBadge" class="status-badge unknown">Unknown</span>
       </div>
       <textarea id="configTextarea" placeholder="Paste your frpc.toml config here..."></textarea>
