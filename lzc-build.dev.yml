@@ -2,7 +2,7 @@
 
 # 覆盖开发态 package.yml，避免覆盖 release 安装包
 package_override:
-  package: cloud.lazycat.app.lzc-frpc.dev
+  package: com.kevinzonda.frpc.dev
 
 # 覆盖 release 配置中的 contentdir；留空表示开发态不打包内容目录
 contentdir:

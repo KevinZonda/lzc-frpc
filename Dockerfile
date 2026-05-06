@@ -5,7 +5,8 @@ COPY main /app/app
 COPY frp /app/frp
 COPY web /app/web
 
-RUN chmod +x /app/app
+COPY run-release.sh /app/run.sh
+RUN chmod +x /app/run.sh /app/app
 
 EXPOSE 3000
-CMD ["/app/app"]
+CMD ["sh", "/app/run.sh"]

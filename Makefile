@@ -14,3 +14,7 @@ ssh:
 
 sync:
 	npx lzc-cli project sync --watch
+
+clean:
+	rm *.lpk | true
+	rm -rf .lzc-cli-build* | true
