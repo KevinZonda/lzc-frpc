@@ -1,4 +1,4 @@
-package: cloud.lazycat.app.lzc-frpc # app的唯一标识符
+package: com.kevinzonda.frpc
 version: 0.0.1 # app的版本
 name: FRPC 面板 # app名称
 description: # app描述
