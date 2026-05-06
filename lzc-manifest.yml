@@ -1,6 +1,7 @@
 application:
-  subdomain: lzc-frpc # 默认访问子域名前缀
+  subdomain: frpc # 默认访问子域名前缀
   image: embed:app-runtime # 引用 lzc-build.yml 里的 images.app-runtime
+  multi_instance: true
 #@build if env.DEV_MODE=1
   injects:
     - id: backend-dev-proxy
