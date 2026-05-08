@@ -1,7 +1,17 @@
 package: com.kevinzonda.frpc
-version: 0.0.1 # app的版本
-name: FRPC 面板 # app名称
-description: # app描述
+version: 0.0.2
+name: FRPC 面板
+description: FRPC 面板，用于控制 FRPC 的运行与配置。
 author: KevinZonda
 license: https://choosealicense.com/licenses/mit/
-homepage: # 出现bug时候提交反馈的地方
+homepage: https://github.com/KevinZonda/lzc-frpc
+locales:
+  zh:
+    name: FRPC 面板
+    description: FRPC 面板，用于控制 FRPC 的运行与配置。
+  zh_CN:
+    name: FRPC 面板
+    description: FRPC 面板，用于控制 FRPC 的运行与配置。
+  en:
+    name: FRPC Panel
+    description: Panel for controlling the running and configuration of FRPC.

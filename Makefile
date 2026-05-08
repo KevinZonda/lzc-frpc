@@ -1,6 +1,12 @@
 build:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main ./main.go
 
+build-lzc: build
+	npx lzc-cli project build
+
+build-release: build
+	npx lzc-cli project build --release
+
 deploy: build
 	npx lzc-cli project deploy
 	npx lzc-cli project info
