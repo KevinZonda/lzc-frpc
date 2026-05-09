@@ -7,3 +7,4 @@ frp
 main
 *.exe
 .lzc-*
+.DS_Store

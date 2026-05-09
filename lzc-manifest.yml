@@ -29,3 +29,8 @@ application:
     # 适合「一个容器同时承载前端+后端」的入门场景
     - /=exec://3000,/app/run.sh
 #@build end
+
+services:
+  frpc:
+    image: embed:app-runtime
+    network_mode: host
