@@ -131,12 +131,25 @@ type PureRequest struct {
 	Text string `json:"text"`
 }
 
+const DEFAULT_CONFIG = `serverAddr = "127.0.0.1"
+serverPort = 7000
+
+[[proxies]]
+name = "test-tcp"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 22
+remotePort = 6000`
+
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 	initWdir()
 	if _, err := os.Stat("/lzcapp/var/frp/frpc.toml"); err == nil {
 		startFrpc()
+	} else {
+		setFrpcConfig(DEFAULT_CONFIG)
 	}
+
 	r := gin.Default()
 
 	r.StaticFile("/", "./web/index.html")
