@@ -27,7 +27,7 @@ application:
   routes:
     # exec:// 路由会执行 /app/run.sh，并把请求转发到 3000 端口
     # 适合「一个容器同时承载前端+后端」的入门场景
-    - /=exec://3000,/app/run.sh
+    - /=http://frpc:3000
 #@build end
 
 services:
