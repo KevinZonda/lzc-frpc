@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -146,8 +148,11 @@ func main() {
 	initWdir()
 	if _, err := os.Stat("/lzcapp/var/frp/frpc.toml"); err == nil {
 		startFrpc()
-	} else {
-		setFrpcConfig(DEFAULT_CONFIG)
+	} else if errors.Is(err, os.ErrNotExist) {
+		err := setFrpcConfig(DEFAULT_CONFIG)
+		if err != nil {
+			log.Println("set default config error:", err)
+		}
 	}
 
 	r := gin.Default()
